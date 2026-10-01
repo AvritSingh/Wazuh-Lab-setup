@@ -1,0 +1,74 @@
+Download Ubuntu 24.04 LTS
+Setup the Virtual Machine 
+
+CPU:       4 cores
+RAM:       8 GB
+Disk:      60–80 GB
+
+Network Adapter 1 → Custom: VMnet1
+Network Adapter 2 → NAT
+
+Step 1 — Check Ubuntu version
+Run:
+cat /etc/os-release
+
+We want to see:
+VERSION_ID="24.04"
+
+Step 2 — Check RAM
+free -h
+
+Ideally:
+Mem:    ~7.5Gi
+
+Step 3 — Check CPU
+nproc
+
+You want:
+4
+
+Step 4 — Check disk
+df -h /
+
+Step 5 — Check Internet
+ping -c 4 8.8.8.8
+
+Step 6 — Install Wazuh
+curl -L -o wazuh-install.sh https://packages.wazuh.com/4.14/wazuh-install.sh
+
+This explicitly tells curl:
+- -L → follow redirects
+- -o wazuh-install.sh → save the download as wazuh-install.sh
+You should see download progress.
+Then run:
+ls -lh wazuh-install.sh
+
+You should get something similar to:
+-rw-r--r-- 1 ubuntu ubuntu 204K ... wazuh-install.sh
+
+Don't run the installer yet
+Once ls -lh wazuh-install.sh shows the file, stop there and send me the output.
+Then we'll run:
+sudo bash ./wazuh-install.sh -a
+
+After the download, a username and password will be shown
+
+
+ilestone 2 — Access the Dashboard
+The installer generated an admin password. Keep that password safe because you'll need it to log in.
+1. From your Windows machine
+Open Chrome/Edge and enter:
+https://192.168.95.134
+
+Make sure you're using https://, not http://.
+You should get the Wazuh login page.
+2. Log in
+Use:
+Username: admin
+Password: <the password shown by your installer>
+
+You may get a certificate/security warning because Wazuh initially uses a self-signed certificate.
+That's expected in a lab.
+
+
+
