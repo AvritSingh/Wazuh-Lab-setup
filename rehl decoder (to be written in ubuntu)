@@ -1,0 +1,55 @@
+Your wazuh-logtest output says:
+Phase 1: Completed pre-decoding
+full event: 'Oct 5 22:16:09 localhost sshd-session[5647]: Failed password...'
+
+Phase 2: Completed decoding.
+No decoder matched.
+
+So the event is reaching the Wazuh analysis engine, but no decoder recognizes this RHEL 10 sshd-session format. The standard Wazuh SSH example uses sshd, while your RHEL 10 log uses sshd-session. Wazuh's documentation confirms that decoders are responsible for extracting fields before rules can generate alerts. Wazuh Documentation
+Also, your event is from October 5, while today is October 7, 2026. That's fine for testing the decoder, but after we create the decoder we'll generate a fresh October 7 event and verify the whole pipeline.
+Today we're going to build the SSH decoder
+
+
+We'll make Wazuh understand:
+sshd-session[5647]: Failed password for invalid user wronguser from 192.168.95.129 port 55926 ssh2
+
+and extract:
+username = wronguser
+source IP = 192.168.95.129
+source port = 55926
+
+Then we'll create a custom rule that produces an alert.
+Wazuh recommends putting custom decoders in:
+/var/ossec/etc/decoders/
+
+rather than modifying the built-in ruleset.
+
+MAIN STEPSSSSSSS ##########################################################################################################################################################
+
+Step 1 — Create the custom decoder
+On your Ubuntu Wazuh server, run:
+sudo nano /var/ossec/etc/decoders/local_decoder.xml
+
+If the file already contains decoders, don't delete them.
+Add this before the final </decoder>/end of the file as appropriate. If it's empty, use this complete content:
+<decoder name="rhel-sshd-session">
+    <prematch>sshd-session</prematch>
+</decoder>
+
+<decoder name="rhel-sshd-session-failed">
+    <parent>rhel-sshd-session</parent>
+    <regex>Failed password for invalid user (\S+) from (\S+) port (\d+)</regex>
+    <order>dstuser,srcip,srcport</order>
+</decoder>
+
+What this does
+The first decoder recognizes:
+sshd-session
+
+The child decoder extracts:
+wronguser
+192.168.95.129
+55926
+
+
+
