@@ -1,0 +1,39 @@
+Step 2 — Create the detection rule
+Now on Ubuntu:
+sudo nano /var/ossec/etc/rules/local_rules.xml
+
+Add:
+<group name="local,authentication_failed,sshd,">
+
+  <rule id="100100" level="7">
+    <decoded_as>rhel-sshd-session</decoded_as>
+    <description>RHEL SSH: Failed login using invalid user $(dstuser) from $(srcip)</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+</group>
+
+We're using rule ID 100100 because Wazuh recommends the 100000–120000 range for custom rules. Wazuh Documentation
+Step 3 — Test the decoder BEFORE restarting anything
+This is important.
+Run:
+sudo /var/ossec/bin/wazuh-logtest
+
+Then paste your exact event:
+Oct 5 22:16:09 localhost sshd-session[5647]: Failed password for invalid user wronguser from 192.168.95.129 port 55926 ssh2
+
+We want Phase 2 to change from:
+No decoder matched.
+
+to something like:
+name: 'rhel-sshd-session'
+dstuser: 'wronguser'
+srcip: '192.168.95.129'
+srcport: '55926'
+
+and Phase 3 should show:
+id: '100100'
+level: '7'
+description: 'RHEL SSH: Failed login using invalid user...'
